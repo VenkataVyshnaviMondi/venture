@@ -2,7 +2,7 @@
   "name": "estatehub-server",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "predev": "npm run prisma:generate",
