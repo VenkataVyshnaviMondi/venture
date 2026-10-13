@@ -7,51 +7,25 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import multer from "multer";
-import path from "node:path";
-import fs from "node:fs";
 
 const router = Router();
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-      const ventureId = req.params.id;
-      const dir = path.resolve(process.cwd(), "uploads", "ventures", ventureId);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-      const ext = path.extname(file.originalname) || ".png";
-      const safe = `layout-${Date.now()}${ext}`;
-      cb(null, safe);
-    }
-  }),
+  storage: multer.memoryStorage(),
   fileFilter: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile: boolean) => void) => {
     const allowed = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/svg+xml"];
     cb(null, allowed.includes(file.mimetype));
   },
-  limits: { fileSize: 20 * 1024 * 1024 }
+  limits: { fileSize: 4 * 1024 * 1024 }
 });
 
 const uploadPhoto = multer({
-  storage: multer.diskStorage({
-    destination: (req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-      const ventureId = req.params.id;
-      const dir = path.resolve(process.cwd(), "uploads", "ventures", ventureId);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-      const ext = path.extname(file.originalname) || ".jpg";
-      const safe = `photo-${Date.now()}${ext}`;
-      cb(null, safe);
-    }
-  }),
+  storage: multer.memoryStorage(),
   fileFilter: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile: boolean) => void) => {
     const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     cb(null, allowed.includes(file.mimetype));
   },
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 4 * 1024 * 1024 }
 });
 
 const createVentureSchema = z.object({

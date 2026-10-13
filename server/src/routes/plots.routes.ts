@@ -49,8 +49,8 @@ const plotCoordsBatchSchema = z.object({
 router.get("/plots", requireAuth, asyncHandler(getPlots));
 router.get("/plots/:id", requireAuth, asyncHandler(getPlot));
 router.get("/plots/:plotId/leads", requireAuth, asyncHandler(getLeadsByPlot));
+router.put("/plots/coords", requireAuth, requireRole("ADMIN"), validate({ body: plotCoordsBatchSchema }), asyncHandler(updatePlotCoordsBatchHandler));
 router.put("/plots/:id", requireAuth, requireRole("ADMIN", "EMPLOYEE"), validate({ body: updatePlotSchema }), asyncHandler(updatePlotHandler));
 router.put("/plots/:id/coords", requireAuth, requireRole("ADMIN"), validate({ body: plotCoordsSchema }), asyncHandler(updatePlotCoordsHandler));
-router.put("/plots/coords", requireAuth, requireRole("ADMIN"), validate({ body: plotCoordsBatchSchema }), asyncHandler(updatePlotCoordsBatchHandler));
 
 export default router;

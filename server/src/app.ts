@@ -13,11 +13,14 @@ import { logger } from "./config/logger.js";
 import routes from "./routes/index.js";
 import { csrfProtection } from "./utils/csrf.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { prisma } from "./config/prisma.js";
+import { asyncHandler } from "./utils/asyncHandler.js";
 
 export const createApp = () => {
   const app = express();
 
   app.disable("x-powered-by");
+  app.set("trust proxy", 1);
 
   const allowedOrigins = new Set(env.corsOrigin.filter(Boolean));
   const isPrivateLanHostname = (hostname: string) => {
@@ -57,15 +60,18 @@ export const createApp = () => {
   );
 
   app.use(
-    cors({
+    cors((req, done) => done(null, {
       origin: (origin, callback) => {
         // Allow non-browser requests (no Origin header).
         if (!origin) return callback(null, true);
+        const publicHost = req.get("x-forwarded-host") || req.get("host");
+        const publicProtocol = req.get("x-forwarded-proto") || req.protocol;
+        if (origin === `${publicProtocol}://${publicHost}`) return callback(null, true);
         return callback(null, isAllowedOrigin(origin));
       },
       credentials: true,
       allowedHeaders: ["Content-Type", "X-CSRF-Token", "Authorization"]
-    })
+    }))
   );
 
   app.use(
@@ -94,6 +100,13 @@ export const createApp = () => {
   );
 
   const uploadsDir = path.resolve(process.cwd(), "uploads");
+  app.get("/uploads/assets/:id", asyncHandler(async (req, res) => {
+    const asset = await prisma.ventureAsset.findUnique({ where: { id: req.params.id } });
+    if (!asset) { res.sendStatus(404); return; }
+    res.setHeader("Content-Type", asset.contentType);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.send(Buffer.from(asset.data));
+  }));
   app.use("/uploads", express.static(uploadsDir));
 
   if (env.nodeEnv === "production") {
@@ -105,3 +118,6 @@ export const createApp = () => {
 
   return app;
 };
+
+// Express auto-detection selects this module; Vercel needs the app export.
+export default createApp();

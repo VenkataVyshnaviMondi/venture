@@ -1,3 +1,4 @@
+import { saveVentureAsset } from "../services/asset.service.js";
 import type { Request, Response } from "express";
 import { createVentureWithPlots, getVentureById, listVentures, updateVentureLayout, updateVenturePhoto, updateVentureRegions } from "../services/venture.service.js";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
@@ -39,7 +40,7 @@ export const uploadVentureLayout = async (req: Request, res: Response) => {
     });
   }
 
-  const layoutImage = `/uploads/ventures/${ventureId}/${file.filename}`;
+  const layoutImage = await saveVentureAsset(ventureId, file);
   const updated = await updateVentureLayout(ventureId, layoutImage);
 
   return res.json({
@@ -60,7 +61,7 @@ export const uploadVenturePhoto = async (req: Request, res: Response) => {
     });
   }
 
-  const photoUrl = `/uploads/ventures/${ventureId}/${file.filename}`;
+  const photoUrl = await saveVentureAsset(ventureId, file);
   const updated = await updateVenturePhoto(ventureId, photoUrl);
 
   return res.json({

@@ -1,64 +1,42 @@
 import { randomInt, randomUUID } from "crypto";
-import { LRUCache } from "lru-cache";
+import { prisma } from "../config/prisma.js";
 
 export type OtpType = "email" | "phone";
-
-type OtpRecord = {
-  type: OtpType;
-  target: string;
-  otp: string;
-  expiresAt: number;
-  verifiedAt?: number;
-};
-
 const OTP_TTL_MS = 5 * 60 * 1000;
 
-const otpCache = new LRUCache<string, OtpRecord>({
-  max: 5000,
-  ttl: OTP_TTL_MS
-});
-
-const normalizeTarget = (type: OtpType, target: string) => {
-  const trimmed = target.trim();
-  return type === "email" ? trimmed.toLowerCase() : trimmed;
-};
-
-export const requestOtp = (input: { type: OtpType; target: string }) => {
-  const target = normalizeTarget(input.type, input.target);
-  if (!target) {
-    throw new Error("Target is required");
-  }
-
+export const requestOtp = async (input: { type: OtpType; target: string }) => {
+  const trimmed = input.target.trim();
+  const target = input.type === "email" ? trimmed.toLowerCase() : trimmed;
+  if (!target) throw new Error("Target is required");
   const otp = String(randomInt(0, 1_000_000)).padStart(6, "0");
   const requestId = randomUUID();
   const expiresAt = Date.now() + OTP_TTL_MS;
-
-  otpCache.set(requestId, {
-    type: input.type,
-    target,
-    otp,
-    expiresAt
+  await prisma.otpRequest.create({
+    data: { id: requestId, type: input.type, target, otp, expiresAt: new Date(expiresAt) }
   });
-
   return { requestId, otp, expiresAt };
 };
 
-export const verifyOtp = (input: { requestId: string; otp: string }) => {
-  const record = otpCache.get(input.requestId);
-  if (!record) {
-    throw new Error("OTP request expired or not found");
-  }
-
-  if (Date.now() > record.expiresAt) {
-    otpCache.delete(input.requestId);
-    throw new Error("OTP request expired");
-  }
-
-  if (record.otp !== input.otp.trim()) {
-    throw new Error("Invalid OTP");
-  }
-
-  otpCache.set(input.requestId, { ...record, verifiedAt: Date.now() });
-  return { type: record.type, target: record.target, verifiedAt: Date.now() };
+export const verifyOtp = async (input: { requestId: string; otp: string }) => {
+  // Claim an attempt atomically; challenges work across function instances.
+  const claim = await prisma.otpRequest.updateMany({
+    where: {
+      id: input.requestId, expiresAt: { gt: new Date() }, attempts: { lt: 5 },
+      OR: [{ verifiedAt: null }, { verifiedAt: { isSet: false } }]
+    },
+    data: { attempts: { increment: 1 } }
+  });
+  if (!claim.count) throw new Error("OTP request expired, already verified or attempts exhausted");
+  const record = await prisma.otpRequest.findUniqueOrThrow({ where: { id: input.requestId } });
+  if (record.otp !== input.otp.trim()) throw new Error("Invalid OTP");
+  const verifiedAt = new Date();
+  const verified = await prisma.otpRequest.updateMany({
+    where: {
+      id: input.requestId,
+      OR: [{ verifiedAt: null }, { verifiedAt: { isSet: false } }]
+    },
+    data: { verifiedAt }
+  });
+  if (!verified.count) throw new Error("OTP request already verified");
+  return { type: record.type, target: record.target, verifiedAt: verifiedAt.getTime() };
 };
-

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/services/api-config";
 
 type RealtimeTransport = "sse" | "ws";
 export type RealtimeStatus = "connected" | "connecting" | "reconnecting" | "offline" | "disconnected";
@@ -20,10 +21,9 @@ interface RealtimeState {
   lastEvent?: RealtimeEvent;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 const TRANSPORT = (import.meta.env.VITE_REALTIME_TRANSPORT || "sse") as RealtimeTransport;
 const STREAM_URL = `${API_BASE_URL}/stream`;
-const WS_URL = `${API_BASE_URL.replace(/^http/, "ws")}/ws`;
+const WS_URL = new URL(`${API_BASE_URL}/ws`, window.location.origin).href.replace(/^http/, "ws");
 
 const BASE_DELAY_MS = 1000;
 const MAX_DELAY_MS = 30000;

@@ -24,7 +24,7 @@ router.get("/stream", requireAuth, (req: Request, res: Response) => {
     res.write(": ping\n\n");
   }, 25000);
 
-  req.on("close", () => {
+  res.on("close", () => {
     clearInterval(heartbeat);
     unsubscribe();
   });

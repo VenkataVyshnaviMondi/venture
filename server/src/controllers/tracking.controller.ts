@@ -27,7 +27,7 @@ export const upsertTracking = async (req: AuthenticatedRequest, res: Response) =
     updatedBy: req.user?.sub
   });
 
-  publishEvent("tracking.updated", { tracking: saved });
+  await publishEvent("tracking.updated", { tracking: saved });
 
   return res.json({
     success: true,

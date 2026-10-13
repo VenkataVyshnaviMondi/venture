@@ -39,8 +39,8 @@ export const createLeadHandler = async (req: AuthenticatedRequest, res: Response
   if (!body.agentId && req.user?.sub) body.agentId = req.user.sub;
 
   const lead = await createLead(body);
-  publishEvent("lead.created", { lead });
-  publishEvent("plot.updated", { plotId: lead.plotId });
+  await publishEvent("lead.created", { lead });
+  await publishEvent("plot.updated", { plotId: lead.plotId });
 
   return res.status(201).json({
     success: true,
@@ -51,8 +51,8 @@ export const createLeadHandler = async (req: AuthenticatedRequest, res: Response
 
 export const updateLeadHandler = async (req: AuthenticatedRequest, res: Response) => {
   const lead = await updateLead(req.params.leadId, req.body);
-  publishEvent("lead.updated", { lead });
-  publishEvent("plot.updated", { plotId: lead.plotId });
+  await publishEvent("lead.updated", { lead });
+  await publishEvent("plot.updated", { plotId: lead.plotId });
 
   return res.json({
     success: true,
@@ -63,8 +63,8 @@ export const updateLeadHandler = async (req: AuthenticatedRequest, res: Response
 
 export const deleteLeadHandler = async (req: AuthenticatedRequest, res: Response) => {
   const lead = await deleteLead(req.params.leadId);
-  publishEvent("lead.deleted", { leadId: lead.id });
-  publishEvent("plot.updated", { plotId: lead.plotId });
+  await publishEvent("lead.deleted", { leadId: lead.id });
+  await publishEvent("plot.updated", { plotId: lead.plotId });
 
   return res.json({
     success: true,

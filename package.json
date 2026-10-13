@@ -10,8 +10,7 @@
     "build": "npm run build -w client && npm run build -w server",
     "lint": "npm run lint -w client && npm run lint -w server",
     "test": "npm run test -w client",
-    "prisma:generate": "npm run prisma:generate -w server",
-    "postinstall": "npm run prisma:generate -w server"
+    "prisma:generate": "npm run prisma:generate -w server"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
@@ -19,5 +18,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

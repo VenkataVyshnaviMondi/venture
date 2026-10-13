@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+import { API_BASE_URL } from "./api-config";
 const API_ORIGIN = API_BASE_URL.replace(/\/api$/, "");
 const CSRF_COOKIE_NAME = import.meta.env.VITE_CSRF_COOKIE_NAME || "estatehub_csrf";
 

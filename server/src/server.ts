@@ -1,10 +1,9 @@
 import { createServer } from "http";
-import { createApp } from "./app.js";
+import app from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { attachWebSocketServer } from "./realtime/ws.js";
 
-const app = createApp();
 const server = createServer(app);
 
 if (env.realtimeTransport === "ws") {

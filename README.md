@@ -1,10 +1,10 @@
-# EstateHub (Venture Plus) — Real Estate Platform
+# EstateHub (Venture Plus) Ã¢â‚¬â€ Real Estate Platform
 
-EstateHub is a full‑stack real estate management platform built to manage **ventures**, **plots**, **leads**, **customers**, and day‑to‑day sales operations. It contains:
+EstateHub is a fullÃ¢â‚¬â€˜stack real estate management platform built to manage **ventures**, **plots**, **leads**, **customers**, and dayÃ¢â‚¬â€˜toÃ¢â‚¬â€˜day sales operations. It contains:
 
 - `client/`: a Vite + React + TypeScript dashboard (shadcn-ui + Tailwind)
 - `server/`: an Express + Prisma API server (TypeScript)
-- `database/`: Prisma schema + migrations (MySQL)
+- `database/`: Prisma MongoDB schema + archived MySQL migrations
 
 This README documents **how this repo is structured, how to run it locally, and how the main flows work**.
 
@@ -12,14 +12,14 @@ This README documents **how this repo is structured, how to run it locally, and 
 
 - Frontend: Vite + React + TypeScript, shadcn-ui, Tailwind CSS
 - Backend: Node.js, Express, Zod validation, JWT (cookie-based), Multer uploads
-- Database: Prisma + MySQL
+- Database: Prisma + MongoDB
 - Realtime: SSE by default, optional WebSocket (`ws`)
 - Security: Helmet, rate limiting, HPP, CSRF checks in production
 
 ## Key Features
 
 - Role-based access: `ADMIN`, `EMPLOYEE`, `AGENT`, `CUSTOMER`
-- Locations → Ventures → Plots inventory management
+- Locations Ã¢â€ â€™ Ventures Ã¢â€ â€™ Plots inventory management
 - Plot layout regions + plot coordinate mapping (`x/y/width/height`)
 - Venture layout + photo uploads served from `/uploads`
 - Lead pipeline + customer records (`/total-data`)
@@ -32,15 +32,15 @@ This README documents **how this repo is structured, how to run it locally, and 
 - `server/` API server (Express + Prisma)
 - `database/` Prisma schema + migrations
 - `dist/` Build output used by some deployments (generated)
-- `uploads/` Runtime uploads (generated at runtime inside `server/`)
-- `backend/` Legacy scripts and test utilities (not part of the main runtime)
+- `VentureAsset` MongoDB collection stores new uploads
+- `backend/` Public Vercel gateway (`index.mjs`) plus archived MongoDB scripts (`server.js`)
 - `frontend/` Legacy connection tests (not part of the main runtime)
 - `Procfile` Start command used by some PaaS providers
 
 ## Prerequisites
 
-- Node.js (recommended: 18+ LTS)
-- MySQL server (local or hosted)
+- Node.js 22 LTS
+- MongoDB replica set (local or hosted, e.g. Atlas)
 - npm (repo uses npm workspaces)
 
 ## Quick Start (Local Development)
@@ -74,7 +74,7 @@ macOS/Linux:
 cp client/.env.example client/.env
 ```
 
-4) Create DB tables with Prisma migrations:
+4) Create MongoDB indexes with Prisma db push:
 ```sh
 npm run prisma:migrate -w server
 ```
@@ -89,6 +89,8 @@ npm run seed -w server
 npm run dev
 ```
 
+For direct `npm run dev`, set `VITE_API_URL=http://localhost:4000/api` in `client/.env`. For all three services together, use `vercel dev` and `VITE_API_URL=/api`.
+
 Defaults:
 - Client: `http://localhost:8081`
 - API: `http://localhost:4000`
@@ -99,7 +101,7 @@ Defaults:
 ### Server (`server/.env`)
 
 Required:
-- `DATABASE_URL` MySQL connection string (example: `mysql://user:pass@localhost:3306/estatehub`)
+- `DATABASE_URL` MongoDB replica-set connection string (example: `mongodb://localhost:27017/venture?replicaSet=rs0`)
 - `JWT_SECRET` (change in production)
 
 Common:
@@ -111,7 +113,7 @@ Common:
 
 Realtime:
 - `REALTIME_TRANSPORT` `sse` (default) or `ws`
-- `REALTIME_REDIS_URL` optional; used only when you wire multi-instance fanout
+- `REALTIME_REDIS_URL` required for realtime fanout between Vercel function instances
 
 Cookies / CSRF (mainly production):
 - `COOKIE_SAMESITE` `lax` | `strict` | `none`
@@ -127,13 +129,13 @@ Cookies / CSRF (mainly production):
 
 The source of truth is `database/schema.prisma`:
 
-- `Location` → `Venture` → `Plot`
+- `Location` Ã¢â€ â€™ `Venture` Ã¢â€ â€™ `Plot`
 - `User` with roles: `ADMIN`, `EMPLOYEE`, `AGENT`, `CUSTOMER`
 - `EmployeeProfile` (account status, metadata for employees)
 - `AgentProfile` (agent details)
 - `Lead` (interest on a plot, optional assigned agent)
 - `CustomerRecord` (sales pipeline records shown under `/total-data`)
-- `Favorite` (user ↔ plot)
+- `Favorite` (user Ã¢â€ â€ plot)
 - `Inquiry` (public inquiries; optionally linked to plot/agent)
 - `TrackingUpdate` (live location + status updates per customer record)
 
@@ -184,7 +186,7 @@ Employee access management:
 
 ## Uploads
 
-Uploads are stored under `server/uploads/` and served by the API at `/uploads`.
+New uploads are stored in MongoDB and served at `/uploads/assets/:id`. Uploads are limited to 4 MiB so the multipart request fits Vercel Function limits. Existing disk uploads need a separate import before deploying.
 
 Endpoints:
 - `POST /api/ventures/:id/layout` venture layout upload
@@ -223,8 +225,8 @@ From `venture_plus/`:
 Server workspace (`-w server`):
 - `npm run dev -w server` API dev server
 - `npm run start -w server` production server (builds first)
-- `npm run prisma:migrate -w server` local dev migrations
-- `npm run prisma:deploy -w server` production migrations
+- `npm run prisma:migrate -w server` local MongoDB index setup
+- `npm run prisma:deploy -w server` production MongoDB index setup
 - `npm run prisma:studio -w server` Prisma Studio
 - `npm run seed -w server` seed data
 
@@ -244,6 +246,9 @@ Client workspace (`-w client`):
 
 ## Troubleshooting
 
-- Prisma connection errors: verify `DATABASE_URL`, MySQL is reachable, and the database exists.
+- Prisma connection errors: verify `DATABASE_URL`, the MongoDB replica set is reachable, and the database exists.
 - CORS errors in browser: add your origin to `CORS_ORIGIN` (comma-separated), then restart the server.
 - WebSocket auth failures: send `Authorization: Bearer <token>` or ensure the access-token cookie exists.
+
+
+See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) for the three-service routing, runtime binding, MongoDB setup and verification steps.

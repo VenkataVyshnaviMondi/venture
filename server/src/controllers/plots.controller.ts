@@ -44,7 +44,7 @@ export const getPlot = async (req: AuthenticatedRequest, res: Response) => {
 
 export const updatePlotHandler = async (req: AuthenticatedRequest, res: Response) => {
   const plot = await updatePlot(req.params.id, req.body);
-  publishEvent("plot.updated", { plot });
+  await publishEvent("plot.updated", { plot });
 
   return res.json({
     success: true,
@@ -55,7 +55,7 @@ export const updatePlotHandler = async (req: AuthenticatedRequest, res: Response
 
 export const updatePlotCoordsHandler = async (req: AuthenticatedRequest, res: Response) => {
   const plot = await updatePlotCoords(req.params.id, req.body);
-  publishEvent("plot.updated", { plotId: plot.id });
+  await publishEvent("plot.updated", { plotId: plot.id });
 
   return res.json({
     success: true,
@@ -66,7 +66,7 @@ export const updatePlotCoordsHandler = async (req: AuthenticatedRequest, res: Re
 
 export const updatePlotCoordsBatchHandler = async (req: AuthenticatedRequest, res: Response) => {
   const plots = await updatePlotCoordsBatch(req.body.plots);
-  plots.forEach((plot) => publishEvent("plot.updated", { plotId: plot.id }));
+  await Promise.all(plots.map((plot) => publishEvent("plot.updated", { plotId: plot.id })));
 
   return res.json({
     success: true,

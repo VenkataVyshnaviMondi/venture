@@ -4,7 +4,7 @@ import { publishEvent } from "../realtime/events.js";
 
 export const createInquiryHandler = async (req: Request, res: Response) => {
   const inquiry = await createInquiry(req.body);
-  publishEvent("inquiry.created", { inquiry });
+  await publishEvent("inquiry.created", { inquiry });
 
   return res.status(201).json({
     success: true,

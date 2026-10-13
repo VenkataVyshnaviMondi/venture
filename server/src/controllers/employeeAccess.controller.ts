@@ -232,7 +232,7 @@ export const setEmployeeStatus = async (req: Request, res: Response) => {
 
 export const requestEmployeeOtp = async (req: Request, res: Response) => {
   const { type, target } = req.body as any;
-  const result = requestOtp({ type, target });
+  const result = await requestOtp({ type, target });
 
   return res.json({
     success: true,
@@ -243,7 +243,7 @@ export const requestEmployeeOtp = async (req: Request, res: Response) => {
 
 export const verifyEmployeeOtp = async (req: Request, res: Response) => {
   const { requestId, otp } = req.body as any;
-  const result = verifyOtp({ requestId, otp });
+  const result = await verifyOtp({ requestId, otp });
 
   return res.json({
     success: true,

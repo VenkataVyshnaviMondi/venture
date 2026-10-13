@@ -58,7 +58,7 @@ const initRedis = () => {
   return redisInitPromise;
 };
 
-export const publishEvent = <T>(type: string, payload: T) => {
+export const publishEvent = async <T>(type: string, payload: T) => {
   const event: RealtimeEvent<T> = {
     id: nextId(),
     type,
@@ -70,7 +70,7 @@ export const publishEvent = <T>(type: string, payload: T) => {
   eventBus.emit("event", event);
 
   if (env.realtimeRedisUrl) {
-    void initRedis()
+    await initRedis()
       .then(() => redisPub?.publish(channel, JSON.stringify(event)))
       .catch((err) => logger.warn({ err }, "Failed to publish realtime event"));
   }

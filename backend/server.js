@@ -522,6 +522,10 @@ app.delete('/api/leads/:leadId', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
-});
+// Export for Vercel; keep the existing listener for direct local execution.
+module.exports = app;
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+  });
+}

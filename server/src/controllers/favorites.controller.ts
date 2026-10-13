@@ -18,7 +18,7 @@ export const createFavorite = async (req: AuthenticatedRequest, res: Response) =
   const userId = req.user?.sub as string;
   const { plotId } = req.body;
   const favorite = await addFavorite(userId, plotId);
-  publishEvent("favorite.created", { favorite, userId, plotId });
+  await publishEvent("favorite.created", { favorite, userId, plotId });
 
   return res.status(201).json({
     success: true,
@@ -31,7 +31,7 @@ export const deleteFavorite = async (req: AuthenticatedRequest, res: Response) =
   const userId = req.user?.sub as string;
   const plotId = req.params.plotId;
   const favorite = await removeFavorite(userId, plotId);
-  publishEvent("favorite.deleted", { favoriteId: favorite.id, userId, plotId });
+  await publishEvent("favorite.deleted", { favoriteId: favorite.id, userId, plotId });
 
   return res.json({
     success: true,

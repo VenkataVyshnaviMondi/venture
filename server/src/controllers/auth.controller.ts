@@ -66,7 +66,7 @@ export const register = async (req: Request, res: Response) => {
 
     res.cookie(env.accessTokenCookieName, token, accessCookieOptions);
     issueCsrfToken(res);
-    publishEvent("user.registered", { user });
+    await publishEvent("user.registered", { user });
 
     return res.status(201).json({
       success: true,
@@ -131,7 +131,7 @@ export const createCustomerAccount = async (req: AuthenticatedRequest, res: Resp
       address
     });
 
-    publishEvent("user.registered", { user, createdBy: actor.sub });
+    await publishEvent("user.registered", { user, createdBy: actor.sub });
 
     return res.status(201).json({
       success: true,

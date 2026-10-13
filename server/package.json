@@ -4,18 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ./node_modules/tsx/dist/cli.mjs watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "predev": "npm run prisma:generate",
-    "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "prebuild": "npm run prisma:generate",
     "prestart": "npm run build",
-    "start": "node --experimental-specifier-resolution=node dist/server.js",
+    "start": "node dist/server.js",
     "lint": "eslint .",
-    "prisma:generate": "node ./node_modules/prisma/build/index.js generate --schema ../database/schema.prisma && node ./scripts/sync-prisma-client.mjs",
-    "prisma:migrate": "node ./node_modules/prisma/build/index.js migrate dev --schema ../database/schema.prisma",
-    "prisma:deploy": "node ./node_modules/prisma/build/index.js migrate deploy --schema ../database/schema.prisma",
-    "prisma:studio": "node ./node_modules/prisma/build/index.js studio --schema ../database/schema.prisma",
-    "seed": "node src/scripts/seed.mjs"
+    "prisma:generate": "prisma generate --schema ../database/schema.prisma && node ./scripts/sync-prisma-client.mjs",
+    "prisma:migrate": "prisma db push --schema ../database/schema.prisma && node scripts/mongodb-indexes.mjs",
+    "prisma:deploy": "prisma db push --schema ../database/schema.prisma && node scripts/mongodb-indexes.mjs",
+    "prisma:studio": "prisma studio --schema ../database/schema.prisma",
+    "seed": "node src/scripts/seed.mjs",
+    "admin:provision": "node scripts/provision-admin.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.16.0",
@@ -51,5 +52,8 @@
     "prisma": "^5.16.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

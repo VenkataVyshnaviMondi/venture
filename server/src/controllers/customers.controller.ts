@@ -27,7 +27,7 @@ export const createCustomerRecordHandler = async (req: AuthenticatedRequest, res
     email: req.user?.email,
     displayName: req.user?.displayName
   });
-  publishEvent("customer.created", { record });
+  await publishEvent("customer.created", { record });
 
   return res.status(201).json({
     success: true,
@@ -43,7 +43,7 @@ export const updateCustomerRecordHandler = async (req: AuthenticatedRequest, res
     email: req.user?.email,
     displayName: req.user?.displayName
   });
-  publishEvent("customer.updated", { record });
+  await publishEvent("customer.updated", { record });
 
   return res.json({
     success: true,
@@ -54,7 +54,7 @@ export const updateCustomerRecordHandler = async (req: AuthenticatedRequest, res
 
 export const deleteCustomerRecordHandler = async (req: AuthenticatedRequest, res: Response) => {
   const record = await deleteCustomerRecord(req.params.id);
-  publishEvent("customer.deleted", { recordId: record.id });
+  await publishEvent("customer.deleted", { recordId: record.id });
 
   return res.json({
     success: true,

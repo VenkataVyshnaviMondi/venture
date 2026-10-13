@@ -2,12 +2,13 @@
   "name": "venture-plus-backend",
   "version": "1.0.0",
   "description": "Backend API for Venture Plus application",
-  "main": "server.js",
+  "main": "index.mjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node index.mjs",
+    "dev": "nodemon index.mjs",
     "seed": "node seed-employees.js",
-    "seed-all": "node seed-admin-customer.js"
+    "seed-all": "node seed-admin-customer.js",
+    "start:legacy": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -19,5 +20,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
